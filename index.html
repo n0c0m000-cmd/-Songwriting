@@ -56,7 +56,7 @@ label{
   font-weight:bold;
 }
 
-textarea, input[type="text"]{
+textarea, input[type="password"]{
   width:100%;
   background:var(--bg);
   border:1px solid var(--border);
@@ -113,8 +113,8 @@ button:hover{ opacity:0.9; }
   <h1>歌詞リール 制作ツール</h1>
   <p class="desc">録音メモを入力して歌詞を生成します。</p>
 
-  <label for="apiKey">API Key（Anthropic APIキーを入力）</label>
-  <input type="text" id="apiKey" placeholder="sk-ant-api03-...">
+  <label for="apiKey">Anthropic API Key</label>
+  <input type="password" id="apiKey" placeholder="sk-ant-...">
 
   <label for="expInput">録音メモ（経験談・情景）</label>
   <textarea id="expInput" class="exp" placeholder="例）終電を逃した夜、コンビニの灯りだけが眩しくて、二人で歩道橋の上から街を見てた。"></textarea>
@@ -195,7 +195,7 @@ SUNOにそのまま貼り付けられる形式（[Intro], [Verse 1], [Chorus] �
       resultArea.appendChild(card);
     }
   } catch(e) {
-    alert('生成に失敗しました: ' + e.message);
+    alert('通信エラーが発生しました: ' + e.message);
   } finally {
     genBtn.disabled = false;
     genBtn.textContent = '歌詞を生成する';
