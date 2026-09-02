@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>歌詞リール プロンプトジェネレーター</title>
+<title>歌詞生成アプリ</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@700&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap');
 
@@ -56,7 +56,7 @@ label{
   font-weight:bold;
 }
 
-textarea{
+textarea, input[type="text"]{
   width:100%;
   background:var(--bg);
   border:1px solid var(--border);
@@ -67,8 +67,7 @@ textarea{
   resize:vertical;
 }
 
-textarea.exp{ min-height:120px; }
-textarea.out{ min-height:220px; margin-top:10px; font-family:monospace; font-size:13px; }
+textarea.exp{ min-height:100px; }
 
 button{
   width:100%;
@@ -85,44 +84,68 @@ button{
 
 button:hover{ opacity:0.9; }
 
-button.copy-btn{
-  background:var(--jp);
-  color:#fff;
-  margin-top:10px;
+.card{
+  background:var(--bg);
+  border:1px solid var(--border);
+  padding:16px;
+  margin-top:16px;
+  border-radius:4px;
+}
+
+.card h3{
+  margin:0 0 8px;
+  font-size:16px;
+  color:var(--jp);
+}
+
+.card pre{
+  white-space:pre-wrap;
+  word-break:break-all;
+  margin:0;
+  font-family:inherit;
+  font-size:14px;
 }
 </style>
 </head>
 <body>
 
 <div class="wrap">
-  <h1>歌詞リール プロンプト作成</h1>
-  <p class="desc">録音メモを入力してボタンを押すと、Claudeに貼り付けるプロンプトが生成されます。</p>
+  <h1>歌詞リール 制作ツール</h1>
+  <p class="desc">録音メモを入力して歌詞を生成します。</p>
+
+  <label for="apiKey">API Key（Anthropic APIキーを入力）</label>
+  <input type="text" id="apiKey" placeholder="sk-ant-api03-...">
 
   <label for="expInput">録音メモ（経験談・情景）</label>
   <textarea id="expInput" class="exp" placeholder="例）終電を逃した夜、コンビニの灯りだけが眩しくて、二人で歩道橋の上から街を見てた。"></textarea>
 
-  <button id="genBtn">プロンプトを生成する</button>
+  <button id="genBtn">歌詞を生成する</button>
 
-  <div id="outputArea" style="display:none; margin-top:24px;">
-    <label>生成されたプロンプト（これをコピーしてClaudeに貼り付けます）</label>
-    <textarea id="promptOutput" class="out" readonly></textarea>
-    <button id="copyBtn" class="copy-btn">プロンプトをコピー</button>
-  </div>
+  <div id="resultArea" style="margin-top:24px;"></div>
 </div>
 
 <script>
 const expInput = document.getElementById('expInput');
+const apiKeyInput = document.getElementById('apiKey');
 const genBtn = document.getElementById('genBtn');
-const outputArea = document.getElementById('outputArea');
-const promptOutput = document.getElementById('promptOutput');
-const copyBtn = document.getElementById('copyBtn');
+const resultArea = document.getElementById('resultArea');
 
-genBtn.addEventListener('click', () => {
+genBtn.addEventListener('click', async () => {
   const exp = expInput.value.trim();
+  const apiKey = apiKeyInput.value.trim();
+
   if(!exp){
     alert('録音メモを入力してください');
     return;
   }
+  if(!apiKey){
+    alert('API Keyを入力してください');
+    return;
+  }
+
+  genBtn.disabled = true;
+  genBtn.textContent = '生成中...';
+  resultArea.innerHTML = '';
 
   const prompt = `あなたはSUNO(AI作曲サービス)向けの歌詞パーツを作る、日英バイリンガルの作詞家です。
 以下の実体験・情景をもとに、指定の構成で歌詞を作成してください。
@@ -144,14 +167,39 @@ Intro → Verse1(英語) → Chorus(基本フック) → Verse2(日本語) → C
 
 SUNOにそのまま貼り付けられる形式（[Intro], [Verse 1], [Chorus] などのタグ付き）で出力してください。`;
 
-  promptOutput.value = prompt;
-  outputArea.style.display = 'block';
-});
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "dangerously-allow-browser": "true"
+      },
+      body: JSON.stringify({
+        model: "claude-3-5-sonnet-20241022",
+        max_tokens: 2000,
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
 
-copyBtn.addEventListener('click', () => {
-  promptOutput.select();
-  navigator.clipboard.writeText(promptOutput.value);
-  alert('プロンプトをコピーしました！Claudeのチャットに貼り付けて送信してください。');
+    const data = await res.json();
+
+    if(data.error){
+      alert('エラー: ' + data.error.message);
+    } else {
+      const text = data.content[0].text;
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `<h3>生成された歌詞</h3><pre>${text}</pre>`;
+      resultArea.appendChild(card);
+    }
+  } catch(e) {
+    alert('生成に失敗しました: ' + e.message);
+  } finally {
+    genBtn.disabled = false;
+    genBtn.textContent = '歌詞を生成する';
+  }
 });
 </script>
 </body>
