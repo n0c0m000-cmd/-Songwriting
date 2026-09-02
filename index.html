@@ -1,934 +1,158 @@
 <!DOCTYPE html>
-<!--
-  歌詞リール / Lyric Reel
-  SUNO向け歌詞パーツを、決まったソング構成テンプレートに沿って生成するツール。
-  MIT License — 自由に複製・改変・再配布可。
--->
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>歌詞リール — Lyric Reel</title>
+<title>歌詞リール プロンプトジェネレーター</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@700&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap');
 
 :root{
   --bg:#14120F;
   --panel:#1E1B17;
-  --panel-2:#262119;
   --text:#F0EAE0;
   --muted:#A69C8E;
   --en:#E4A548;
   --jp:#4F8FA6;
   --border:#35302A;
-  --danger:#C4634A;
-  --good:#7CB88F;
 }
 
 *{box-sizing:border-box;}
-html,body{margin:0;padding:0;}
 body{
   background:var(--bg);
   color:var(--text);
   font-family:'Zen Kaku Gothic New', sans-serif;
-  min-height:100vh;
+  margin:0;
+  padding:20px;
   line-height:1.6;
 }
 
 .wrap{
-  max-width:1180px;
+  max-width:800px;
   margin:0 auto;
-  padding:32px 20px 120px;
+  background:var(--panel);
+  padding:28px;
+  border-radius:6px;
+  border:1px solid var(--border);
 }
 
-header.top{
-  margin-bottom:28px;
-  padding-bottom:20px;
-  border-bottom:1px solid var(--border);
-}
-header.top h1{
+h1{
   font-family:'Shippori Mincho', serif;
-  font-weight:700;
-  font-size:28px;
-  margin:0 0 6px;
-  letter-spacing:0.02em;
+  margin:0 0 8px;
+  font-size:24px;
 }
-header.top p{
-  margin:0;
+
+p.desc{
   color:var(--muted);
   font-size:14px;
+  margin-top:0;
 }
 
-.layout{
-  display:grid;
-  grid-template-columns:340px 1fr;
-  gap:24px;
-  align-items:start;
-}
-@media (max-width:860px){
-  .layout{grid-template-columns:1fr;}
-}
-
-/* ---- left deck ---- */
-.deck{
-  background:var(--panel);
-  border:1px solid var(--border);
-  border-radius:4px;
-  padding:22px;
-  position:sticky;
-  top:20px;
-}
-.deck h2{
-  font-family:'Shippori Mincho', serif;
-  font-size:16px;
-  margin:0 0 4px;
-  font-weight:700;
-}
-.deck .sub{
-  color:var(--muted);
-  font-size:12.5px;
-  margin:0 0 16px;
-}
-label.field-label{
+label{
   display:block;
-  font-size:12.5px;
-  color:var(--muted);
-  margin:16px 0 6px;
-}
-label.field-label:first-of-type{margin-top:0;}
-textarea.exp{
-  width:100%;
-  min-height:150px;
-  resize:vertical;
-  background:var(--bg);
-  border:1px solid var(--border);
-  border-radius:3px;
-  color:var(--text);
-  font-family:inherit;
-  font-size:14px;
-  padding:12px;
-  line-height:1.7;
-}
-textarea.exp:focus{
-  outline:none;
-  border-color:var(--en);
-}
-
-.gen-btn{
-  width:100%;
   margin-top:20px;
-  background:var(--en);
-  color:#1a1408;
-  border:none;
-  border-radius:3px;
-  padding:13px;
-  font-family:'Zen Kaku Gothic New', sans-serif;
-  font-weight:700;
-  font-size:14.5px;
-  cursor:pointer;
-  transition:opacity .15s;
-}
-.gen-btn:hover{opacity:0.88;}
-.gen-btn:disabled{opacity:0.45; cursor:default;}
-
-.status-line{
-  margin-top:10px;
-  font-size:12.5px;
-  color:var(--muted);
-  min-height:18px;
-}
-.status-line.error{color:var(--danger);}
-
-.hint-box{
-  margin-top:22px;
-  padding-top:16px;
-  border-top:1px solid var(--border);
-  font-size:12px;
-  color:var(--muted);
-}
-.hint-box b{color:var(--text); font-weight:500;}
-
-.structure-box{
-  margin-top:16px;
-  padding-top:16px;
-  border-top:1px solid var(--border);
-  font-size:11px;
-  color:var(--muted);
-  line-height:1.85;
-}
-.structure-box b{color:var(--text); font-weight:500; display:block; margin-bottom:6px; font-size:12px;}
-
-/* ---- right reel ---- */
-.reel{display:flex; flex-direction:column; gap:16px;}
-.placeholder{
-  border:1px dashed var(--border);
-  border-radius:4px;
-  padding:60px 24px;
-  text-align:center;
-  color:var(--muted);
   font-size:14px;
+  color:var(--en);
+  font-weight:bold;
 }
 
-.card{
-  background:var(--panel);
-  border:1px solid var(--border);
-  border-radius:4px;
-  overflow:hidden;
-  display:flex;
-}
-.card .bar{
-  width:5px;
-  flex-shrink:0;
-}
-.bar.mix{
-  background:linear-gradient(180deg, var(--en) 0 50%, var(--jp) 50% 100%);
-}
-.bar.en{background:var(--en);}
-.bar.jp{background:var(--jp);}
-.bar.neutral{background:var(--border);}
-
-.card-body{flex:1; padding:16px 18px;}
-.card-head{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  margin-bottom:10px;
-}
-.card-head .label{
-  font-family:'Shippori Mincho', serif;
-  font-weight:700;
-  font-size:15px;
-}
-.card-head .label small{
-  font-family:'Zen Kaku Gothic New', sans-serif;
-  font-weight:400;
-  color:var(--muted);
-  font-size:12px;
-  margin-left:8px;
-}
-.regen-btn{
-  background:none;
-  border:1px solid var(--border);
-  color:var(--muted);
-  border-radius:3px;
-  padding:5px 10px;
-  font-size:12px;
-  cursor:pointer;
-  font-family:inherit;
-  display:flex;
-  align-items:center;
-  gap:5px;
-  flex-shrink:0;
-}
-.regen-btn:hover{border-color:var(--en); color:var(--en);}
-.regen-btn:disabled{opacity:0.4; cursor:default;}
-
-textarea.section-text{
+textarea{
   width:100%;
   background:var(--bg);
   border:1px solid var(--border);
-  border-radius:3px;
   color:var(--text);
-  font-family:'Zen Kaku Gothic New', sans-serif;
-  font-size:14.5px;
-  line-height:1.9;
   padding:12px;
-  resize:none;
-  overflow:hidden;
-}
-textarea.section-text:focus{outline:none; border-color:var(--en);}
-
-.chorus-note{
-  font-size:12px;
-  color:var(--muted);
-  margin-bottom:10px;
-}
-.chorus-row{
-  display:flex;
-  align-items:center;
-  gap:9px;
-  margin-bottom:7px;
-}
-input.chorus-line{
-  flex:1;
-  background:var(--bg);
-  border:1px solid var(--border);
-  border-radius:3px;
-  color:var(--text);
-  font-family:'Zen Kaku Gothic New', sans-serif;
-  font-size:14.5px;
-  padding:8px 10px;
-}
-input.chorus-line:focus{outline:none; border-color:var(--en);}
-.vowel-dot{
-  width:9px;
-  height:9px;
-  border-radius:50%;
-  flex-shrink:0;
-  background:var(--border);
-}
-.vowel-dot.good{background:var(--good);}
-.vowel-dot.weak{background:var(--danger);}
-.vowel-legend{
-  font-size:11.5px;
-  color:var(--muted);
-  margin-top:6px;
-  display:flex;
-  align-items:center;
-  gap:14px;
-}
-.vowel-legend .item{display:flex; align-items:center; gap:5px;}
-
-/* ---- bottom bar ---- */
-.bottombar{
-  position:fixed;
-  left:0; right:0; bottom:0;
-  background:var(--panel-2);
-  border-top:1px solid var(--border);
-  padding:14px 20px;
-  display:flex;
-  justify-content:center;
-  gap:14px;
-  z-index:10;
-}
-.bottombar .inner{
-  max-width:1180px;
-  width:100%;
-  display:flex;
-  justify-content:flex-end;
-  align-items:center;
-  gap:14px;
-}
-.copy-btn{
-  background:var(--jp);
-  color:#0e1a1c;
-  border:none;
-  border-radius:3px;
-  padding:12px 22px;
-  font-family:'Zen Kaku Gothic New', sans-serif;
-  font-weight:700;
   font-size:14px;
+  border-radius:4px;
+  resize:vertical;
+}
+
+textarea.exp{ min-height:120px; }
+textarea.out{ min-height:220px; margin-top:10px; font-family:monospace; font-size:13px; }
+
+button{
+  width:100%;
+  margin-top:16px;
+  padding:14px;
+  background:var(--en);
+  color:#14120F;
+  border:none;
+  border-radius:4px;
+  font-weight:bold;
+  font-size:15px;
   cursor:pointer;
 }
-.copy-btn:hover{opacity:0.88;}
-.copy-feedback{
-  font-size:13px;
-  color:var(--muted);
-}
 
-footer.foot{
-  max-width:1180px;
-  margin:40px auto 0;
-  padding:20px 20px 0;
-  font-size:11.5px;
-  color:var(--muted);
-  border-top:1px solid var(--border);
+button:hover{ opacity:0.9; }
+
+button.copy-btn{
+  background:var(--jp);
+  color:#fff;
+  margin-top:10px;
 }
 </style>
 </head>
 <body>
 
 <div class="wrap">
-  <header class="top">
-    <h1>歌詞リール</h1>
-    <p>経験談から、固定のソング構成テンプレートに沿って歌詞パーツを生成。セクションごとに編集・作り直しができ、最後にSUNO用として一括コピーできます。</p>
-  </header>
+  <h1>歌詞リール プロンプト作成</h1>
+  <p class="desc">録音メモを入力してボタンを押すと、Claudeに貼り付けるプロンプトが生成されます。</p>
 
-  <div class="layout">
-    <!-- LEFT: input deck -->
-    <div class="deck">
-      <h2>録音メモ</h2>
-      <p class="sub">歌詞のもとになる経験・情景を書いてください</p>
+  <label for="expInput">録音メモ（経験談・情景）</label>
+  <textarea id="expInput" class="exp" placeholder="例）終電を逃した夜、コンビニの灯りだけが眩しくて、二人で歩道橋の上から街を見てた。"></textarea>
 
-      <label class="field-label">経験談・情景（必須）</label>
-      <textarea class="exp" id="expInput" placeholder="例）終電を逃した夜、コンビニの灯りだけが眩しくて、二人で歩道橋の上から街を見てた。何も話さなかったけど、それが一番よかった。"></textarea>
+  <button id="genBtn">プロンプトを生成する</button>
 
-      <button class="gen-btn" id="genFullBtn">歌詞を生成する</button>
-      <div class="status-line" id="statusLine"></div>
-
-      <div class="hint-box">
-        <b>仕組み</b><br>
-        毎回まっさらな状態でAIに送っています。会話の履歴を引き継がないので、同じ言い回しが続きにくくなっています。さらに、このセッション内で既に使ったフレーズは「使用済み」として伝え、別の語彙を選ばせています。
-      </div>
-
-      <div class="structure-box">
-        <b>固定の曲構成</b>
-        Intro → Verse1(English) → Chorus(基本フック) →
-        Verse2(日本語) → Chorus(1〜2行だけ変化可) →
-        Verse3(日本語) → Chorus(完全反復) → Verse4(余韻・ループ)
-        <br><br>
-        Verse4はOutroの役割ですが、あえて[Verse 4]として出力し、Verse1へ自然に戻れるループ構成を想定しています。
-      </div>
-    </div>
-
-    <!-- RIGHT: reel -->
-    <div class="reel" id="reel">
-      <div class="placeholder" id="placeholder">
-        左に経験談を書いて「歌詞を生成する」を押すと、ここにセクションごとの歌詞が並びます。
-      </div>
-    </div>
-  </div>
-
-  <footer class="foot">
-    歌詞リール（Lyric Reel）— MIT License。自由に複製・改変・再配布して構いません。
-  </footer>
-</div>
-
-<div class="bottombar" id="bottombar" style="display:none;">
-  <div class="inner">
-    <span class="copy-feedback" id="copyFeedback"></span>
-    <button class="copy-btn" id="copyAllBtn">SUNO用にコピー</button>
+  <div id="outputArea" style="display:none; margin-top:24px;">
+    <label>生成されたプロンプト（これをコピーしてClaudeに貼り付けます）</label>
+    <textarea id="promptOutput" class="out" readonly></textarea>
+    <button id="copyBtn" class="copy-btn">プロンプトをコピー</button>
   </div>
 </div>
 
 <script>
-const MODEL = "claude-sonnet-4-6";
+const expInput = document.getElementById('expInput');
+const genBtn = document.getElementById('genBtn');
+const outputArea = document.getElementById('outputArea');
+const promptOutput = document.getElementById('promptOutput');
+const copyBtn = document.getElementById('copyBtn');
 
-/*
-  currentLyrics shape:
-  {
-    titles:[3], intro:"...",
-    verse1:[6](EN), chorus:[4](EN, base hook, reused as Chorus1 & Chorus3),
-    verse2:[6](JP), chorus2:[4](EN, based on chorus, 1-2 lines may vary),
-    verse3:[6](JP),
-    verse4:{ repeat:[2](EN), jp:[4], en:[1-2](EN) }  // Outro-role, labeled [Verse 4]
-  }
-*/
-let currentLyrics = null;
-let usedPhrases = {
-  titles: [], verse1: [], chorus: [], verse2: [], chorus2: [],
-  verse3: [], verse4Repeat: [], verse4: []
-};
-
-const INTRO_TEXT = "(Piano solo)\n...";
-
-const els = {
-  exp: document.getElementById('expInput'),
-  genFullBtn: document.getElementById('genFullBtn'),
-  status: document.getElementById('statusLine'),
-  reel: document.getElementById('reel'),
-  placeholder: document.getElementById('placeholder'),
-  bottombar: document.getElementById('bottombar'),
-  copyAllBtn: document.getElementById('copyAllBtn'),
-  copyFeedback: document.getElementById('copyFeedback'),
-};
-
-function setStatus(msg, isError){
-  els.status.textContent = msg || '';
-  els.status.classList.toggle('error', !!isError);
-}
-
-function pushUsed(category, lines){
-  if(!lines) return;
-  const arr = Array.isArray(lines) ? lines : [lines];
-  usedPhrases[category].push(...arr);
-  if(usedPhrases[category].length > 24){
-    usedPhrases[category] = usedPhrases[category].slice(-24);
-  }
-}
-
-function allUsedFlat(){
-  return Object.values(usedPhrases).flat();
-}
-
-async function callClaude(systemPrompt, userPrompt){
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: MODEL,
-      max_tokens: 1000,
-      system: systemPrompt,
-      messages: [{ role: "user", content: userPrompt }],
-    })
-  });
-  if(!response.ok){
-    throw new Error("API error: " + response.status);
-  }
-  const data = await response.json();
-  const textBlocks = (data.content || []).filter(b => b.type === "text").map(b => b.text);
-  let raw = textBlocks.join("\n").trim();
-  raw = raw.replace(/^```(json)?/i, "").replace(/```$/,"").trim();
-  return JSON.parse(raw);
-}
-
-function baseSystemPrompt(){
-  return `あなたはSUNO(AI作曲サービス)向けの歌詞パーツを作る、日英バイリンガルの作詞家です。
-ユーザーの実体験・情景の説明をもとに、以下の厳密なルールに従い、JSONオブジェクト1つのみを出力してください。
-前置き、説明文、Markdownのコードフェンスは一切出力しないでください。出力はJSONのみです。
-
-曲の構成は次の固定順です（あなたはJSONの各パーツだけを作ればよい）：
-Intro → Verse1(英語) → Chorus(基本フック) → Verse2(日本語) → Chorus(1〜2行だけ変化可) →
-Verse3(日本語) → Chorus(基本フックの完全反復) → Verse4(英語2語反復×2＋日本語4行＋英語1〜2行、Outroの役割)
-※ 3回登場するChorusのうち、1回目と3回目は完全に同じ（chorusキーの内容をそのまま使う）。2回目だけ chorus2 という別キーで、chorusとほぼ同じだが1〜2行だけ変えてよい。
-※ この曲はループ再生を想定しており、Verse4（実質的にOutro）が終わったらまたVerse1に自然に戻れるようなトーンで書く。
-
-【全体方針】
-・ありきたりな言い回しを避け、できるだけ幅広い語彙・比喩・言い回しを使う
-・ユーザーの経験談の具体的なディテールを歌詞に反映する
-・恋愛の定番句（baby, my love, forever, together, I need you, 永遠 等）は避ける
-・全体を通して、絶叫を誘発するような強い断定・命令・叫び口調の言葉は避ける
-
-【VERSE1】英語、必ず6行の配列。順番は 映像/映像/動き/時間/行動/状態 に対応させる。
-・厳守：主語+動詞で完結する文は絶対に書かない。動詞は使うなら -ing 形の分詞や名詞化した形のみ許可し、文末を終止形にしない
-・名詞＋名詞、形容詞＋名詞、または短いフレーズの断片を優先する
-・感情語（love, sad, happy, alone, pain, feel, cry, heart 等）を使わない
-・カメラで撮影できる具体的なもの・情景のみを書く。抽象語は禁止
-・各行は2〜4語のごく短い断片にする
-・良い例："vending machine hum", "wet asphalt, streetlight", "half-empty train, 2am"
-・悪い例（絶対に書かないこと）："The vending machine was humming.", "I walked on the wet street."
-
-【VERSE2】日本語、必ず6行の配列。順番は 映像/変化/状況/動き/理解/状態 に対応させる。
-・「〜だ」「〜した」のように言い切って終わる完全な文は書かない。体言止め中心
-・感情語（好き、寂しい、嬉しい 等）を直接使わない
-・Verse1より少しだけ場面が前進した内容にし、小さな変化だけを置く。大きな説明・展開はしない
-・「理解」の行は気づきを断片的なイメージで示し、感情語で直接説明しない
-
-【VERSE3】日本語、必ず6行の配列。順番は 映像/小さな変化/状況/行動/内面/状態 に対応させる。
-・VERSE2と同じ文体ルール（体言止め、感情語禁止）
-・新しい説明を増やしすぎない。結論は書かない
-・VERSE2から自然につながる場面にする
-
-【CHORUS】英語、必ず4行の配列。曲の基本フック。
-・各行は2〜3語の短いフレーズ
-・意味よりも「音の気持ちよさ」を最優先する短い反復
-・一度聴いただけで歌えるくらいシンプルな発音にする
-・行の半分以上は a, o, ai のいずれかの母音を強く含む単語にする
-・叫ぶようなトーンではなく、つぶやく・繰り返すような静かな強さにする
-・良い例："hold on, hold on", "fading, fading", "so far, so far"
-・悪い例（意味に寄りすぎ、または叫び口調）："I will always remember this moment", "NEVER LET GO!"
-
-【CHORUS2】英語、必ず4行の配列。
-・CHORUSと基本的に同じ4行にする。ただしそのうち1〜2行だけ、意味を少し前進させる形に変えてもよい
-・フック（残りの2〜3行）は変えない
-・説明しすぎない
-
-【VERSE4】オブジェクト { "repeat": 英語、2語のフレーズの反復、必ず2行の配列, "jp": 日本語、必ず4行の配列, "en": 英語、1〜2行の配列 }
-・実質的にはOutroの役割。曲を締めくくらず、余韻を残す
-・jp: 結論や答えを書かない4行
-・en: 短く、余韻の残る1〜2行
-・全体として、きっぱり終わらせず、少し開いたまま終わる。Verse1に戻ってループしても違和感がないトーンにする
-
-【TITLES】3案の配列。曲のタイトル候補。
-・1〜4語程度の短いタイトル
-・英語のみ、日本語のみ、英日混在のいずれでもよいが、3案それぞれ違うアプローチにする
-・VERSEに出てくる具体的なイメージ・言葉から取ること
-・"Love", "Forever", "永遠" のような使い古された単語だけのタイトルは避ける
-
-出力するJSONのキーは必ず次の通り：
-{"titles":[...3],"verse1":[...6],"chorus":[...4],"verse2":[...6],"chorus2":[...4],"verse3":[...6],"verse4":{"repeat":[...2],"jp":[...4],"en":[...1〜2]}}`;
-}
-
-function buildUserPrompt(fieldsNote){
-  const exp = els.exp.value.trim();
-  const used = allUsedFlat();
-
-  let p = `経験談・情景:\n${exp}\n\n`;
-  if(used.length){
-    p += `このセッションで既に使用したフレーズ（重複させず、別の語彙を選ぶこと）:\n${used.join(" / ")}\n\n`;
-  }
-  p += fieldsNote;
-  return p;
-}
-
-const ALL_KEYS_UPPER = "TITLES, VERSE1, CHORUS, VERSE2, CHORUS2, VERSE3, VERSE4";
-
-async function generateFull(){
-  const exp = els.exp.value.trim();
+genBtn.addEventListener('click', () => {
+  const exp = expInput.value.trim();
   if(!exp){
-    setStatus("経験談を入力してください", true);
+    alert('録音メモを入力してください');
     return;
   }
-  els.genFullBtn.disabled = true;
-  setStatus("生成中…");
-  try{
-    const userPrompt = buildUserPrompt(`${ALL_KEYS_UPPER} すべてを含むJSONを出力してください。`);
-    const result = await callClaude(baseSystemPrompt(), userPrompt);
-    currentLyrics = {
-      titles: result.titles,
-      intro: INTRO_TEXT,
-      verse1: result.verse1,
-      chorus: result.chorus,
-      verse2: result.verse2,
-      chorus2: result.chorus2,
-      verse3: result.verse3,
-      verse4: result.verse4,
-    };
-    ['titles','verse1','chorus','verse2','chorus2','verse3'].forEach(k => pushUsed(k, result[k]));
-    pushUsed('verse4Repeat', result.verse4.repeat);
-    pushUsed('verse4', [...(result.verse4.jp||[]), ...(result.verse4.en||[])]);
-    render();
-    setStatus("生成しました。各セクションは編集・作り直しができます。");
-  }catch(err){
-    console.error(err);
-    setStatus("生成に失敗しました。もう一度お試しください。", true);
-  }finally{
-    els.genFullBtn.disabled = false;
-  }
-}
 
-const SECTION_NOTES = {
-  titles: "TITLES のみを含むJSON（キーは titles のみ、3案の配列）を出力してください。",
-  verse1: "VERSE1 のみを含むJSON（キーは verse1 のみ、英語6行の配列：映像/映像/動き/時間/行動/状態 の順）を出力してください。",
-  chorus: "CHORUS のみを含むJSON（キーは chorus のみ、英語2〜3語反復の4行の配列）を出力してください。叫び口調にしないこと。",
-  verse2: "VERSE2 のみを含むJSON（キーは verse2 のみ、日本語6行の配列：映像/変化/状況/動き/理解/状態 の順）を出力してください。Verse1より少し前進させ、感情語は使わないこと。",
-  chorus2: "CHORUS2 のみを含むJSON（キーは chorus2 のみ、英語4行の配列）を出力してください。CHORUSとほぼ同じにし、1〜2行だけ意味を前進させる形に変えてください。",
-  verse3: "VERSE3 のみを含むJSON（キーは verse3 のみ、日本語6行の配列：映像/小さな変化/状況/行動/内面/状態 の順）を出力してください。Verse2から自然につなげ、結論は書かないこと。",
-  verse4: 'VERSE4 のみを含むJSON（キーは verse4 のみ、{"repeat":[...2],"jp":[...4],"en":[...1〜2]}の形）を出力してください。Outroの役割で、Verse1に戻ってループしても違和感のないトーンにすること。',
-};
+  const prompt = `あなたはSUNO(AI作曲サービス)向けの歌詞パーツを作る、日英バイリンガルの作詞家です。
+以下の実体験・情景をもとに、指定の構成で歌詞を作成してください。
 
-async function regenerateSection(key){
-  if(!currentLyrics) return;
-  const exp = els.exp.value.trim();
-  if(!exp){
-    setStatus("経験談を入力してください", true);
-    return;
-  }
-  const btn = document.querySelector(`.regen-btn[data-key="${key}"]`);
-  if(btn) btn.disabled = true;
-  setStatus(sectionLabel(key) + " を作り直し中…");
-  try{
-    const note = SECTION_NOTES[key];
-    const contextNote = `\n参考：曲の他のセクションは次の通り（トーンを合わせること）:\n` +
-      `VERSE1: ${JSON.stringify(currentLyrics.verse1)}\nCHORUS: ${JSON.stringify(currentLyrics.chorus)}\n` +
-      `VERSE2: ${JSON.stringify(currentLyrics.verse2)}\nCHORUS2: ${JSON.stringify(currentLyrics.chorus2)}\n` +
-      `VERSE3: ${JSON.stringify(currentLyrics.verse3)}\nVERSE4: ${JSON.stringify(currentLyrics.verse4)}\n\n`;
-    const userPrompt = buildUserPrompt(contextNote + note);
-    const result = await callClaude(baseSystemPrompt(), userPrompt);
+【経験談・情景】
+${exp}
 
-    if(key === 'verse4'){
-      currentLyrics.verse4 = result.verse4;
-      pushUsed('verse4Repeat', result.verse4.repeat);
-      pushUsed('verse4', [...(result.verse4.jp||[]), ...(result.verse4.en||[])]);
-    }else{
-      currentLyrics[key] = result[key];
-      pushUsed(key, result[key]);
-    }
+【曲の固定構成】
+Intro → Verse1(英語) → Chorus(基本フック) → Verse2(日本語) → Chorus(1〜2行だけ変化) → Verse3(日本語) → Chorus(完全反復) → Verse4(英語+日本語、Outro役)
 
-    refreshCard(key);
-    setStatus(sectionLabel(key) + " を作り直しました。");
-  }catch(err){
-    console.error(err);
-    setStatus("作り直しに失敗しました。", true);
-  }finally{
-    if(btn) btn.disabled = false;
-  }
-}
+【ルール】
+・言葉の重複を避け、具体的な描写（カメラで撮影できるもの）を中心に書く。
+・恋愛の定番句（baby, my love, forever 等）や直接的な感情語（寂しい、好き等）は避ける。
+・VERSE1（英語6行）：短音節の断片。主語+動詞で完結する文は不可。
+・VERSE2（日本語6行）：体言止め中心。感情を説明しない。
+・VERSE3（日本語6行）：Verse2から自然につなげる。
+・CHORUS（英語4行）：2〜3語の短フレーズ反復。音の気持ちよさを重視。
+・Verse4：Outroとして余韻を残し、Verse1に戻ってループできるトーンにする。
 
-function sectionLabel(key){
-  return {
-    titles: "タイトル候補", verse1: "ヴァース1", chorus: "コーラス（基本フック）",
-    verse2: "ヴァース2", chorus2: "コーラス2", verse3: "ヴァース3", verse4: "ヴァース4（Outro役）"
-  }[key] || key;
-}
+SUNOにそのまま貼り付けられる形式（[Intro], [Verse 1], [Chorus] などのタグ付き）で出力してください。`;
 
-function autoResize(ta){
-  ta.style.height = 'auto';
-  ta.style.height = (ta.scrollHeight + 2) + 'px';
-}
-
-// a/o優勢かどうかを判定（母音字のうちa,oが占める割合が50%以上なら"good"）
-function vowelClass(line){
-  const vowels = (line.toLowerCase().match(/[aeiou]/g) || []);
-  if(vowels.length === 0) return 'neutral';
-  const good = vowels.filter(c => c === 'a' || c === 'o').length;
-  return (good / vowels.length) >= 0.5 ? 'good' : 'weak';
-}
-
-// 英語フレーズ配列を、母音チェック付きの行入力カードとして描画する汎用関数
-function makeVowelCard({ key, lines, label, sublabel, note }){
-  const card = document.createElement('div');
-  card.className = 'card';
-  card.id = 'card-' + key;
-
-  const bar = document.createElement('div');
-  bar.className = 'bar en';
-  card.appendChild(bar);
-
-  const body = document.createElement('div');
-  body.className = 'card-body';
-
-  const head = document.createElement('div');
-  head.className = 'card-head';
-  const labelEl = document.createElement('div');
-  labelEl.className = 'label';
-  labelEl.innerHTML = label + (sublabel ? `<small>${sublabel}</small>` : '');
-  head.appendChild(labelEl);
-
-  const btn = document.createElement('button');
-  btn.className = 'regen-btn';
-  btn.setAttribute('data-key', key);
-  btn.textContent = '↻ 作り直す';
-  btn.onclick = () => regenerateSection(key);
-  head.appendChild(btn);
-  body.appendChild(head);
-
-  if(note){
-    const noteEl = document.createElement('div');
-    noteEl.className = 'chorus-note';
-    noteEl.textContent = note;
-    body.appendChild(noteEl);
-  }
-
-  const rowsWrap = document.createElement('div');
-  rowsWrap.className = 'chorus-rows';
-  rowsWrap.setAttribute('data-key', key);
-
-  lines.forEach((line) => {
-    const row = document.createElement('div');
-    row.className = 'chorus-row';
-
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.className = 'chorus-line';
-    input.value = line;
-
-    const dot = document.createElement('div');
-    dot.className = 'vowel-dot ' + vowelClass(line);
-    dot.title = 'a/o系の母音が優勢だと緑になります';
-
-    input.addEventListener('input', () => {
-      dot.className = 'vowel-dot ' + vowelClass(input.value);
-    });
-
-    row.appendChild(input);
-    row.appendChild(dot);
-    rowsWrap.appendChild(row);
-  });
-
-  body.appendChild(rowsWrap);
-
-  const legend = document.createElement('div');
-  legend.className = 'vowel-legend';
-  legend.innerHTML = `
-    <span class="item"><span class="vowel-dot good"></span>a / o 優勢</span>
-    <span class="item"><span class="vowel-dot weak"></span>他の母音優勢</span>
-  `;
-  body.appendChild(legend);
-
-  card.appendChild(body);
-  return card;
-}
-
-function getLinesFor(key){
-  return Array.from(document.querySelectorAll(`.chorus-rows[data-key="${key}"] input.chorus-line`)).map(i => i.value);
-}
-
-function makeCard({ key, barClass, label, sublabel, text, note, regenerable }){
-  const card = document.createElement('div');
-  card.className = 'card';
-  card.id = 'card-' + key;
-
-  const bar = document.createElement('div');
-  bar.className = 'bar ' + barClass;
-  card.appendChild(bar);
-
-  const body = document.createElement('div');
-  body.className = 'card-body';
-
-  const head = document.createElement('div');
-  head.className = 'card-head';
-  const labelEl = document.createElement('div');
-  labelEl.className = 'label';
-  labelEl.innerHTML = label + (sublabel ? `<small>${sublabel}</small>` : '');
-  head.appendChild(labelEl);
-
-  if(regenerable){
-    const btn = document.createElement('button');
-    btn.className = 'regen-btn';
-    btn.setAttribute('data-key', key);
-    btn.textContent = '↻ 作り直す';
-    btn.onclick = () => regenerateSection(key);
-    head.appendChild(btn);
-  }
-  body.appendChild(head);
-
-  if(note){
-    const noteEl = document.createElement('div');
-    noteEl.className = 'chorus-note';
-    noteEl.textContent = note;
-    body.appendChild(noteEl);
-  }
-
-  const ta = document.createElement('textarea');
-  ta.className = 'section-text';
-  ta.value = text;
-  ta.setAttribute('data-key', key);
-  ta.addEventListener('input', () => autoResize(ta));
-  body.appendChild(ta);
-
-  card.appendChild(body);
-  requestAnimationFrame(() => autoResize(ta));
-  return card;
-}
-
-function verse4DisplayText(){
-  return [...currentLyrics.verse4.repeat, ...currentLyrics.verse4.jp, ...currentLyrics.verse4.en].join('\n');
-}
-
-const CARD_META = {
-  titles: { barClass:'mix', label:'タイトル候補', sublabel:'3案', text: () => currentLyrics.titles.join('\n') },
-  verse1: { barClass:'en', label:'ヴァース1', sublabel:'[Verse 1] · 英語6行', text: () => currentLyrics.verse1.join('\n') },
-  verse2: { barClass:'jp', label:'ヴァース2', sublabel:'[Verse 2] · 日本語6行', text: () => currentLyrics.verse2.join('\n'), note: '※ Verse1より少し前進 / 感情を直接説明しない' },
-  verse3: { barClass:'jp', label:'ヴァース3', sublabel:'[Verse 3] · 日本語6行', text: () => currentLyrics.verse3.join('\n'), note: '※ 結論を書かない / Verse2から自然につなげる' },
-  verse4: { barClass:'mix', label:'ヴァース4（Outro役）', sublabel:'[Verse 4] · 英語2語反復×2 + 日本語4行 + 英語1〜2行', text: () => verse4DisplayText(), note: '※ 結論を書かない。Verse1に戻ってループしても自然なトーンで' },
-};
-
-function refreshCard(key){
-  const old = document.getElementById('card-' + key);
-  if(!old){ render(); return; }
-
-  let newCard;
-  if(key === 'chorus'){
-    newCard = makeVowelCard({ key: 'chorus', lines: currentLyrics.chorus, label: 'コーラス（基本フック）', sublabel: '[Chorus] · 英語2〜3語 ×4（1回目・3回目に使われます）', note: '※ 叫ばない、つぶやくように繰り返すトーン' });
-  }else if(key === 'chorus2'){
-    newCard = makeVowelCard({ key: 'chorus2', lines: currentLyrics.chorus2, label: 'コーラス2', sublabel: '[Chorus] · 2回目（1〜2行だけ変化可）', note: '※ 基本フックは維持。1〜2行だけ意味を前進' });
-  }else{
-    const cfg = CARD_META[key];
-    if(!cfg) return;
-    newCard = makeCard({ key, barClass: cfg.barClass, label: cfg.label, sublabel: cfg.sublabel, text: cfg.text(), note: cfg.note, regenerable: true });
-  }
-  old.replaceWith(newCard);
-}
-
-function render(){
-  els.placeholder.style.display = 'none';
-  els.reel.innerHTML = '';
-
-  els.reel.appendChild(makeCard({
-    key: 'titles', barClass: 'mix', label: 'タイトル候補', sublabel: '3案',
-    text: currentLyrics.titles.join('\n'), regenerable: true
-  }));
-
-  els.reel.appendChild(makeCard({
-    key: 'intro', barClass: 'neutral', label: 'イントロ', sublabel: '[Intro]',
-    text: currentLyrics.intro, regenerable: false
-  }));
-
-  els.reel.appendChild(makeCard({
-    key: 'verse1', barClass: 'en', label: 'ヴァース1', sublabel: '[Verse 1] · 英語6行',
-    text: currentLyrics.verse1.join('\n'), regenerable: true
-  }));
-
-  els.reel.appendChild(makeVowelCard({ key: 'chorus', lines: currentLyrics.chorus, label: 'コーラス（基本フック）', sublabel: '[Chorus] · 英語2〜3語 ×4（1回目・3回目に使われます）', note: '※ 叫ばない、つぶやくように繰り返すトーン' }));
-
-  els.reel.appendChild(makeCard({
-    key: 'verse2', barClass: 'jp', label: 'ヴァース2', sublabel: '[Verse 2] · 日本語6行',
-    text: currentLyrics.verse2.join('\n'), note: '※ Verse1より少し前進 / 感情を直接説明しない', regenerable: true
-  }));
-
-  els.reel.appendChild(makeVowelCard({ key: 'chorus2', lines: currentLyrics.chorus2, label: 'コーラス2', sublabel: '[Chorus] · 2回目（1〜2行だけ変化可）', note: '※ 基本フックは維持。1〜2行だけ意味を前進' }));
-
-  els.reel.appendChild(makeCard({
-    key: 'verse3', barClass: 'jp', label: 'ヴァース3', sublabel: '[Verse 3] · 日本語6行',
-    text: currentLyrics.verse3.join('\n'), note: '※ 結論を書かない / Verse2から自然につなげる', regenerable: true
-  }));
-
-  els.reel.appendChild(makeCard({
-    key: 'verse4', barClass: 'mix', label: 'ヴァース4（Outro役）', sublabel: '[Verse 4] · 英語2語反復×2 + 日本語4行 + 英語1〜2行',
-    text: verse4DisplayText(), note: '※ 結論を書かない。Verse1に戻ってループしても自然なトーンで', regenerable: true
-  }));
-
-  els.bottombar.style.display = 'flex';
-}
-
-function readTextareaValue(key){
-  const ta = document.querySelector(`textarea.section-text[data-key="${key}"]`);
-  return ta ? ta.value : '';
-}
-
-function buildFinalLyrics(){
-  const chorus = getLinesFor('chorus').join('\n');
-  const chorus2 = getLinesFor('chorus2').join('\n');
-
-  return [
-    '[Intro]',
-    readTextareaValue('intro'),
-    '[Verse 1]',
-    readTextareaValue('verse1'),
-    '[Chorus]',
-    chorus,
-    '[Verse 2]',
-    readTextareaValue('verse2'),
-    '[Chorus]',
-    chorus2,
-    '[Verse 3]',
-    readTextareaValue('verse3'),
-    '[Chorus]',
-    chorus,
-    '[Verse 4]',
-    readTextareaValue('verse4'),
-  ].join('\n');
-}
-
-els.genFullBtn.addEventListener('click', generateFull);
-
-async function copyTextRobust(text){
-  // この環境ではクリップボードAPI/execCommandが権限ポリシーでブロックされることがあるため、
-  // 成功可否に関わらず常に選択済みのテキスト欄を表示し、手動コピーを確実な経路にする。
-  let silentlySucceeded = false;
-  if(navigator.clipboard && window.isSecureContext){
-    try{
-      await navigator.clipboard.writeText(text);
-      silentlySucceeded = true;
-    }catch(err){ /* 無視してフォールバック表示に進む */ }
-  }
-  return silentlySucceeded;
-}
-
-els.copyAllBtn.addEventListener('click', async () => {
-  if(!currentLyrics){
-    els.copyFeedback.textContent = 'まだ歌詞がありません';
-    return;
-  }
-  const text = buildFinalLyrics();
-  const autoOk = await copyTextRobust(text);
-  showManualCopyFallback(text);
-  els.copyFeedback.textContent = autoOk
-    ? 'コピーしました。念のため下の欄にも全文を表示しています。'
-    : '下の欄に全文を表示しました。テキストは選択済みなので、そのままCtrl+C（Mac: Cmd+C）でコピーしてください。';
+  promptOutput.value = prompt;
+  outputArea.style.display = 'block';
 });
 
-function showManualCopyFallback(text){
-  let container = document.getElementById('manualCopyContainer');
-  if(!container){
-    container = document.createElement('div');
-    container.id = 'manualCopyContainer';
-    container.style.marginTop = '24px';
-    container.style.paddingTop = '20px';
-    container.style.borderTop = '1px solid var(--border)';
-
-    const heading = document.createElement('div');
-    heading.textContent = 'コピー用テキスト（下のボックスは選択済みです。そのままCtrl+C / Cmd+Cでコピーしてください）';
-    heading.style.fontSize = '12.5px';
-    heading.style.color = 'var(--muted)';
-    heading.style.marginBottom = '8px';
-    container.appendChild(heading);
-
-    const box = document.createElement('textarea');
-    box.id = 'manualCopyBox';
-    box.readOnly = true;
-    box.style.width = '100%';
-    box.style.minHeight = '320px';
-    box.style.background = 'var(--bg)';
-    box.style.border = '1px solid var(--border)';
-    box.style.borderRadius = '3px';
-    box.style.color = 'var(--text)';
-    box.style.fontFamily = "'Zen Kaku Gothic New', sans-serif";
-    box.style.fontSize = '13px';
-    box.style.lineHeight = '1.8';
-    box.style.padding = '12px';
-    container.appendChild(box);
-
-    document.querySelector('.wrap').appendChild(container);
-  }
-  const box = document.getElementById('manualCopyBox');
-  box.value = text;
-  box.style.display = 'block';
-  container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  box.focus();
-  box.select();
-}
+copyBtn.addEventListener('click', () => {
+  promptOutput.select();
+  navigator.clipboard.writeText(promptOutput.value);
+  alert('プロンプトをコピーしました！Claudeのチャットに貼り付けて送信してください。');
+});
 </script>
 </body>
 </html>
